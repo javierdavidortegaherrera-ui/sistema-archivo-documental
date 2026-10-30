@@ -1,28 +1,58 @@
+<p align="center"><img src="assets/images/logo_aduanero.png" width="120" alt="Logotipo del Archivo Aduanero"></p>
+
 # Sistema de Archivo y Control Documental Aduanero
 
-Prototipo académico y de portafolio independiente, no afiliado a ninguna empresa ni institución aduanera y sin integración con servicios gubernamentales. Usa únicamente expedientes y documentos ficticios de demostración.
+Aplicación Flutter en español para organizar expedientes de importación y exportación, publicar documentos de muestra y consultar un archivo documental desde Android o PC.
+
+**Estado:** prototipo académico y de portafolio. **Autor:** [Javier David Ortega Herrera](https://github.com/javierdavidortegaherrera-ui), estudiante de Ingeniería en Informática en CEUTEC, Honduras.
+
+Es un proyecto independiente, sin afiliación con empresas o instituciones aduaneras ni integración con servicios gubernamentales. Usa únicamente expedientes y documentos ficticios de demostración.
+
+## Vista de la aplicación
+
+Las capturas se generaron con pruebas de widgets Flutter y datos ficticios. Las imágenes Android reproducen el tamaño de una pantalla móvil; no son fotografías ni grabaciones de un teléfono físico.
+
+| PC: administrador | PC: expedientes |
+|---|---|
+| ![Panel de administrador en PC](docs/capturas/web-administrador.png) | ![Expedientes en PC](docs/capturas/web-expedientes.png) |
+
+| Android: acceso | Android: expedientes | Android: documentos |
+|---|---|---|
+| ![Acceso móvil](docs/capturas/android-acceso.png) | ![Expedientes publicados en móvil](docs/capturas/android-expedientes.png) | ![Documentos de un expediente en móvil](docs/capturas/android-documentos.png) |
+
+## Demostraciones
+
+| PC | Android |
+|---|---|
+| [![Ver demostración de PC](docs/capturas/web-administrador.png)](docs/demo/pc-demo.mp4) | [![Ver demostración real de Android](docs/capturas/android-documentos.png)](docs/demo/android-telefono.mp4) |
+
+[Video de PC](docs/demo/pc-demo.mp4) · [Video real de Android](docs/demo/android-telefono.mp4). El video de PC es una secuencia de capturas generadas por pruebas de widgets. El de Android se grabó en un teléfono conectado por USB: muestra la consulta de un expediente publicado y la apertura de su PDF ficticio como invitado. Las capturas estáticas anteriores también se generaron con pruebas de widgets. [Detalles y reproducción del material visual](docs/demo/README.md).
+
+Los PDF de muestra también son ficticios: [factura comercial](output/pdf/factura_comercial_demo_repuestos.pdf) y [certificado de origen](output/pdf/certificado_origen_demo_cafe.pdf). No tienen validez comercial, legal ni aduanera.
 
 ## Objetivo
 
 Organizar expedientes de importación y exportación, guardar PDF e imágenes en la nube y permitir que un invitado vea solo lo publicado por un administrador. Resuelve la dispersión de archivos y la falta de una vista clara sobre qué documentos se pueden consultar.
 
-## Alcance implementado
+## Funciones
 
 - Una aplicación Flutter para Android y web, con Material 3 y el logotipo original en `assets/images/logo_aduanero.png`.
-- Acceso Email/Password para administradores preautorizados y acceso anónimo sin registro para invitados.
+- Acceso Email/Password para administradores preautorizados y acceso anónimo sin registro para invitados. Desde la sección **Cuentas**, un administrador puede registrar otra cuenta administrativa sin cerrar su propia sesión.
 - Alta y listado de expedientes con código `EXP-AÑO-NNNN`, generado con contador transaccional en Firestore.
-- Carga de PDF, JPG y PNG de hasta 10 MB, con comprobación de extensión y firma básica del contenido.
+- Carga de PDF, JPG y PNG de hasta 10 MB, con comprobación de extensión y firma básica del contenido. Para subir archivos nuevos se necesita un bucket de Cloud Storage habilitado.
 - Metadatos en Firestore, archivo en Cloud Storage y vista previa en la aplicación.
 - Dos PDF ficticios pequeños de demostración, asociados a `EXP-2026-0001` y `EXP-2026-0002`, se leen directamente desde Firestore para que los invitados puedan probar la vista previa antes de habilitar Cloud Storage. Los originales están en `output/pdf/`. Esta excepción no se usa para archivos nuevos.
 - La vista PDF web usa PDF.js 4.6.82 incluido localmente en `web/pdfjs` bajo su licencia Apache 2.0; la visualización no carga código desde una CDN.
 - Publicación u ocultación explícita de expedientes y documentos. Ambos son privados por defecto.
 - Búsqueda simple por campos de los registros ya autorizados en la pantalla actual; no es búsqueda de texto completo.
 - Registro técnico de accesos anónimos y panel de las 50 visitas recientes para administradores.
-- Reglas de Firestore y Storage que reservan las escrituras de negocio a custom claims `admin` y solo permiten leer archivos de una versión publicada bajo un expediente publicado.
+- Reglas de Firestore y Storage que reservan las escrituras de negocio al administrador inicial con custom claim `admin` y a cuentas registradas en la colección protegida `administradores`. Los invitados solo pueden leer archivos de una versión publicada bajo un expediente publicado.
 
 El archivo se sube primero a Storage y después se confirman sus metadatos en un lote de Firestore. Si falla Firestore, la aplicación intenta borrar el archivo. Una interrupción entre ambos servicios aún puede dejar un archivo huérfano privado, que deberá limpiar un administrador.
 
 ## Estructura
+
+**Tecnologías:** Flutter/Dart, Material 3, Firebase Authentication, Cloud Firestore, Cloud Storage, SharedPreferences y PDF.js para vista previa web.
 
 ```text
 lib/
@@ -37,7 +67,7 @@ firestore.rules     permisos de datos
 storage.rules       permisos de archivos
 ```
 
-Los datos se guardan en Firebase, no en carpetas del dispositivo. Una reinstalación o borrado de datos locales no borra expedientes, documentos ni registros remotos. El `installationId` es aleatorio y local: si se borran los datos o se usa navegación privada, se puede crear una identidad técnica nueva. No se usan IMEI, MAC ni huellas del navegador. El registro de invitado escrito desde el cliente es un registro técnico de demostración, no una auditoría infalsificable.
+Los datos se guardan en Firebase, no en carpetas del dispositivo. Una reinstalación o borrado de datos locales no borra expedientes, documentos ni registros remotos. El `installationId` es aleatorio y local: si se borran los datos o se usa navegación privada, se puede crear una identidad técnica nueva. No se usan IMEI, MAC ni huellas del navegador. El registro de invitado escrito desde el cliente es un registro técnico de demostración, no una auditoría infalsificable. Las capturas usan datos inyectados en pruebas: al clonar el código no se copian cuentas ni documentos de Firestore.
 
 ## Preparar Firebase
 
@@ -48,6 +78,8 @@ Los datos se guardan en Firebase, no en carpetas del dispositivo. Una reinstalac
 5. Instala Firebase CLI e inicia sesión en tu proyecto. Despliega **ambas** reglas desde esta carpeta con `firebase deploy --only firestore:rules,storage`. Al usar consultas de Firestore desde Storage Rules, Firebase puede solicitar habilitar el permiso de conexión entre ambos productos. Revisa la solicitud en la consola y confírmala para tu proyecto.
 6. Para la vista previa web, configura CORS del bucket porque `getData()` descarga los bytes directamente. El ejemplo `storage.cors.example.json` permite solo solicitudes GET desde cualquier origen; antes de publicar una web, limita `origin` a sus dominios. Ejecuta `gsutil cors set storage.cors.example.json gs://<TU_BUCKET>` con Google Cloud CLI. CORS no concede acceso: las reglas de Storage siguen autorizando cada lectura. Consulta la [guía oficial de descarga web](https://firebase.google.com/docs/storage/web/download-files#cors_configuration).
 7. Crea una cuenta Email/Password de demostración desde la consola Firebase, nunca desde un formulario público. Asigna el custom claim administrativo desde un entorno de confianza. El script incluido usa Application Default Credentials y requiere `pnpm install`, `GOOGLE_APPLICATION_CREDENTIALS` apuntando a una credencial **fuera del repositorio**, `GOOGLE_CLOUD_PROJECT` y `pnpm asignar-admin <UID>`. El operador debe verificar que el UID corresponde a la cuenta Email/Password deseada. Después, cierra e inicia sesión para renovar el token.
+
+Después de entrar con esa cuenta inicial, abre **Cuentas > Registrar cuenta**. El formulario crea otra cuenta Email/Password en una instancia secundaria de Firebase Auth y escribe su permiso en Firestore. La sesión del administrador permanece abierta. Las cuentas nuevas tienen acceso administrativo; comparte la contraseña por un medio apropiado y cámbiala si deja de ser privada. La clave de servicio nunca se incluye en la app.
 
 Las reglas se bloquean por defecto en rutas no declaradas. No publiques un bucket con reglas abiertas. Nunca subas la credencial administrativa, documentos reales o contraseñas a GitHub. El proyecto incluye `.gitignore` para los archivos de configuración local y credenciales con los nombres indicados.
 
@@ -86,9 +118,9 @@ flutter build apk --debug --dart-define-from-file=firebase.local.json
 
 La prueba incluida comprueba aceptación y rechazo de firmas de archivos. Las pruebas de reglas, el flujo remoto, la persistencia después de reinstalación y las capturas reales requieren Firebase o emuladores configurados.
 
-## Capturas
+## Material visual
 
-Pendientes de capturar con una instancia Firebase de demostración configurada. No se incluyen pantallas con información real ni capturas simuladas como evidencia de ejecución.
+Las capturas estáticas y el video de PC se generaron mediante pruebas de widgets con datos ficticios. El video de Android es una grabación real del modo invitado y muestra la lectura de un PDF ficticio desde el proyecto Firebase de demostración. El flujo administrativo completo y la carga de archivos nuevos requieren un bucket de Cloud Storage configurado.
 
 ## Limitaciones y siguientes fases
 

@@ -2,11 +2,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function admin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/administradores/$(request.auth.uid))
+      );
     }
     function invitado() {
       return request.auth != null &&
         request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    match /administradores/{uid} {
+      allow get: if (request.auth != null && request.auth.uid == uid) || admin();
+      allow list: if admin();
+      allow create: if admin() &&
+        request.resource.data.keys().hasOnly([
+          'correo', 'rol', 'creadoPor', 'fechaCreacion'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'correo', 'rol', 'creadoPor', 'fechaCreacion'
+        ]) &&
+        request.resource.data.correo is string &&
+        request.resource.data.correo.size() > 3 &&
+        request.resource.data.rol == 'admin' &&
+        request.resource.data.creadoPor == request.auth.uid &&
+        request.resource.data.fechaCreacion == request.time;
+      allow update, delete: if false;
     }
 
     match /contadores/{contadorId} {

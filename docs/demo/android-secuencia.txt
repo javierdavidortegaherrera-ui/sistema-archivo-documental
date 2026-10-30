@@ -1,0 +1,7 @@
+file '../capturas/android-acceso.png'
+duration 3
+file '../capturas/android-expedientes.png'
+duration 3
+file '../capturas/android-documentos.png'
+duration 3
+file '../capturas/android-documentos.png'

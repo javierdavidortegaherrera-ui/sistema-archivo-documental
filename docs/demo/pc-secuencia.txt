@@ -1,0 +1,7 @@
+file '../capturas/web-acceso.png'
+duration 3
+file '../capturas/web-administrador.png'
+duration 3
+file '../capturas/web-expedientes.png'
+duration 3
+file '../capturas/web-expedientes.png'

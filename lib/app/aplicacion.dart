@@ -55,6 +55,7 @@ class Aplicacion extends StatelessWidget {
               : _EntradaAdministrador(
                   key: ValueKey(usuario.uid),
                   usuario: usuario,
+                  acceso: acceso,
                   archivo: archivo,
                 );
         },
@@ -106,7 +107,11 @@ class _EntradaInvitadoState extends State<_EntradaInvitado> {
           ),
         );
       }
-      return PantallaInicio(archivo: widget.archivo, invitado: true);
+      return PantallaInicio(
+        archivo: widget.archivo,
+        acceso: widget.acceso,
+        invitado: true,
+      );
     },
   );
 }
@@ -115,9 +120,11 @@ class _EntradaAdministrador extends StatefulWidget {
   const _EntradaAdministrador({
     super.key,
     required this.usuario,
+    required this.acceso,
     required this.archivo,
   });
   final User usuario;
+  final AccesoService acceso;
   final ArchivoRepository archivo;
 
   @override
@@ -129,7 +136,12 @@ class _EntradaAdministradorState extends State<_EntradaAdministrador> {
 
   Future<bool> _verificar() async {
     final token = await widget.usuario.getIdTokenResult(true);
-    return token.claims?['admin'] == true;
+    if (token.claims?['admin'] == true) return true;
+    final registro = await FirebaseFirestore.instance
+        .collection('administradores')
+        .doc(widget.usuario.uid)
+        .get();
+    return registro.data()?['rol'] == 'admin';
   }
 
   @override
@@ -172,7 +184,11 @@ class _EntradaAdministradorState extends State<_EntradaAdministrador> {
           ),
         );
       }
-      return PantallaInicio(archivo: widget.archivo, invitado: false);
+      return PantallaInicio(
+        archivo: widget.archivo,
+        acceso: widget.acceso,
+        invitado: false,
+      );
     },
   );
 }

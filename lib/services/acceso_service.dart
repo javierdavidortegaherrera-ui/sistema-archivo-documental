@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,62 @@ class AccesoService {
       email: correo.trim(),
       password: clave,
     );
+  }
+
+  Future<void> registrarAdministrador(String correo, String clave) async {
+    final administrador = auth.currentUser;
+    if (administrador == null || administrador.isAnonymous) {
+      throw StateError(
+        'Inicia sesión como administrador para registrar cuentas.',
+      );
+    }
+    final token = await administrador.getIdTokenResult(true);
+    final autorizado =
+        token.claims?['admin'] == true ||
+        (await db.collection('administradores').doc(administrador.uid).get())
+                .data()?['rol'] ==
+            'admin';
+    if (!autorizado) {
+      throw StateError('Esta cuenta no tiene autorización administrativa.');
+    }
+
+    // Una app de Firebase secundaria evita cerrar la sesión del administrador.
+    final appRegistro = await Firebase.initializeApp(
+      name: 'registro-${DateTime.now().microsecondsSinceEpoch}',
+      options: Firebase.app().options,
+    );
+    final authRegistro = FirebaseAuth.instanceFor(app: appRegistro);
+    User? nuevoUsuario;
+    try {
+      final credencial = await authRegistro.createUserWithEmailAndPassword(
+        email: correo.trim(),
+        password: clave,
+      );
+      nuevoUsuario = credencial.user;
+      if (nuevoUsuario == null) {
+        throw StateError('Firebase no devolvió la cuenta creada.');
+      }
+      await db.collection('administradores').doc(nuevoUsuario.uid).set({
+        'correo': correo.trim().toLowerCase(),
+        'rol': 'admin',
+        'creadoPor': administrador.uid,
+        'fechaCreacion': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      if (nuevoUsuario != null) {
+        try {
+          await nuevoUsuario.delete();
+        } catch (_) {
+          throw StateError(
+            'La cuenta se creó, pero no se pudo autorizar ni revertir. '
+            'Revisa el usuario ${nuevoUsuario.uid} en Firebase Authentication.',
+          );
+        }
+      }
+      rethrow;
+    } finally {
+      await appRegistro.delete();
+    }
   }
 
   Future<void> recuperarClave(String correo) async {

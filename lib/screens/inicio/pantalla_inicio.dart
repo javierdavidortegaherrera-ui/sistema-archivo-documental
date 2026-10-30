@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 
 import '../../models/expediente.dart';
 import '../../repositories/archivo_repository.dart';
+import '../../services/acceso_service.dart';
+import '../acceso/pantalla_cuentas.dart';
 import '../expedientes/panel_expedientes.dart';
 
 class PantallaInicio extends StatefulWidget {
   const PantallaInicio({
     super.key,
     required this.archivo,
+    required this.acceso,
     required this.invitado,
   });
   final ArchivoRepository archivo;
+  final AccesoService acceso;
   final bool invitado;
 
   @override
@@ -46,6 +50,10 @@ class _PantallaInicioState extends State<PantallaInicio> {
               icon: Icon(Icons.people_outline),
               label: 'Visitas',
             ),
+            NavigationDestination(
+              icon: Icon(Icons.person_add_alt_1_outlined),
+              label: 'Cuentas',
+            ),
           ];
     final contenido = seleccionado != null
         ? PanelExpedientes(
@@ -64,8 +72,11 @@ class _PantallaInicioState extends State<PantallaInicio> {
         ? _Dashboard(
             archivo: widget.archivo,
             irExpedientes: () => setState(() => seccion = 1),
+            irCuentas: () => setState(() => seccion = 3),
           )
-        : const _Visitas();
+        : seccion == 2
+        ? const _Visitas()
+        : PantallaCuentas(acceso: widget.acceso);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -136,9 +147,14 @@ class _PantallaInicioState extends State<PantallaInicio> {
 }
 
 class _Dashboard extends StatelessWidget {
-  const _Dashboard({required this.archivo, required this.irExpedientes});
+  const _Dashboard({
+    required this.archivo,
+    required this.irExpedientes,
+    required this.irCuentas,
+  });
   final ArchivoRepository archivo;
   final VoidCallback irExpedientes;
+  final VoidCallback irCuentas;
 
   @override
   Widget build(BuildContext context) => StreamBuilder<List<Expediente>>(
@@ -177,13 +193,21 @@ class _Dashboard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton.icon(
-              onPressed: irExpedientes,
-              icon: const Icon(Icons.folder_open),
-              label: const Text('Gestionar expedientes'),
-            ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: irExpedientes,
+                icon: const Icon(Icons.folder_open),
+                label: const Text('Gestionar expedientes'),
+              ),
+              OutlinedButton.icon(
+                onPressed: irCuentas,
+                icon: const Icon(Icons.person_add_alt_1),
+                label: const Text('Registrar cuenta'),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           const Text(
