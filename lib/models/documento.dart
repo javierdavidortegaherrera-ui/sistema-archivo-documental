@@ -8,6 +8,7 @@ class Documento {
     required this.storagePath,
     required this.tipoMime,
     required this.visibleParaInvitados,
+    this.contenidoDemoBase64,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class Documento {
   final String storagePath;
   final String tipoMime;
   final bool visibleParaInvitados;
+  final String? contenidoDemoBase64;
 
   factory Documento.desdeDocumento(DocumentSnapshot<Map<String, dynamic>> doc) {
     final datos = doc.data() ?? {};
@@ -26,6 +28,7 @@ class Documento {
       storagePath: datos['storagePath'] as String? ?? '',
       tipoMime: datos['tipoMime'] as String? ?? '',
       visibleParaInvitados: datos['visibleParaInvitados'] as bool? ?? false,
+      contenidoDemoBase64: datos['contenidoDemoBase64'] as String?,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -159,16 +160,23 @@ class ArchivoRepository {
       'fechaActualizacion': FieldValue.serverTimestamp(),
     });
     if (publicar) {
+      final datosPrivados = (await privado.get()).data();
+      if (datosPrivados == null) {
+        throw StateError('El documento privado no existe.');
+      }
+      final ruta = datosPrivados['storagePath'] as String? ?? '';
       lote.set(publico, {
-        'nombreOriginal': documento.nombreOriginal,
-        'nombreBusqueda': documento.nombreOriginal.toLowerCase(),
-        'tipoDocumento': documento.tipoDocumento,
-        'storagePath': documento.storagePath,
-        'tipoMime': documento.tipoMime,
-        'versionActualId': documento.storagePath.split('/')[5],
-        'nombreArchivo': documento.storagePath.split('/').last,
+        'nombreOriginal': datosPrivados['nombreOriginal'],
+        'nombreBusqueda': datosPrivados['nombreBusqueda'],
+        'tipoDocumento': datosPrivados['tipoDocumento'],
+        'storagePath': ruta,
+        'tipoMime': datosPrivados['tipoMime'],
+        'versionActualId': datosPrivados['versionActualId'],
+        'nombreArchivo': ruta.isEmpty ? '' : ruta.split('/').last,
         'visibleParaInvitados': true,
         'fechaCreacion': FieldValue.serverTimestamp(),
+        if (datosPrivados['contenidoDemoBase64'] is String)
+          'contenidoDemoBase64': datosPrivados['contenidoDemoBase64'],
       });
     } else {
       lote.delete(publico);
@@ -177,6 +185,12 @@ class ArchivoRepository {
   }
 
   Future<Uint8List> obtenerArchivo(Documento documento) async {
+    final contenidoDemo = documento.contenidoDemoBase64;
+    if (contenidoDemo != null) {
+      final datos = base64Decode(contenidoDemo);
+      ArchivoValidador.validar(documento.nombreOriginal, datos);
+      return datos;
+    }
     if (documento.storagePath.isEmpty) {
       throw StateError('El documento no tiene archivo asociado.');
     }
