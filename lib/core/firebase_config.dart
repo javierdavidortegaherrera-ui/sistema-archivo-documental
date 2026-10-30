@@ -3,7 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ConfiguracionFirebase {
-  static const apiKey = String.fromEnvironment('FIREBASE_API_KEY');
+  static const androidApiKey = String.fromEnvironment(
+    'FIREBASE_ANDROID_API_KEY',
+  );
+  static const webApiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
   static const projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
   static const senderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const storageBucket = String.fromEnvironment(
@@ -14,14 +17,16 @@ class ConfiguracionFirebase {
   static const authDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
 
   static bool get completa =>
-      apiKey.isNotEmpty &&
+      (kIsWeb
+          ? webApiKey.isNotEmpty && authDomain.isNotEmpty
+          : androidApiKey.isNotEmpty) &&
       projectId.isNotEmpty &&
       senderId.isNotEmpty &&
       storageBucket.isNotEmpty &&
       (kIsWeb ? webAppId.isNotEmpty : androidAppId.isNotEmpty);
 
   static FirebaseOptions get opciones => FirebaseOptions(
-    apiKey: apiKey,
+    apiKey: kIsWeb ? webApiKey : androidApiKey,
     appId: kIsWeb ? webAppId : androidAppId,
     messagingSenderId: senderId,
     projectId: projectId,
