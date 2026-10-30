@@ -1,0 +1,38 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function admin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function invitado() {
+      return request.auth != null &&
+        request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+    function documentoPublicado(expedienteId, documentoId, versionId, archivo) {
+      let doc = firestore.get(
+        /databases/(default)/documents/public_expedientes/$(expedienteId)/documentos/$(documentoId)
+      );
+      return doc.data.versionActualId == versionId &&
+        doc.data.nombreArchivo == archivo;
+    }
+
+    match /expedientes/{expedienteId}/documentos/{documentoId}/versiones/{versionId}/{archivo} {
+      allow read: if admin() || (
+        invitado() &&
+        firestore.exists(/databases/(default)/documents/public_expedientes/$(expedienteId)) &&
+        documentoPublicado(expedienteId, documentoId, versionId, archivo)
+      );
+      allow create: if admin() &&
+        request.resource.size > 0 &&
+        request.resource.size <= 10 * 1024 * 1024 &&
+        ((archivo.matches('archivo\\.pdf') &&
+          request.resource.contentType == 'application/pdf') ||
+         (archivo.matches('archivo\\.(jpg|jpeg)') &&
+          request.resource.contentType == 'image/jpeg') ||
+         (archivo.matches('archivo\\.png') &&
+          request.resource.contentType == 'image/png'));
+      allow update: if false;
+      allow delete: if admin();
+    }
+  }
+}

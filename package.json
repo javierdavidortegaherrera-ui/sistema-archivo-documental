@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "asignar-admin": "node scripts/asignar_admin.mjs"
+  },
+  "devDependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}

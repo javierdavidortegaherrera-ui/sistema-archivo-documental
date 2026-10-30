@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function invitado() {
+      return request.auth != null &&
+        request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    match /contadores/{contadorId} {
+      allow read, write: if admin();
+    }
+
+    match /expedientes/{expedienteId} {
+      allow read, create: if admin();
+      allow update: if admin() &&
+        (request.resource.data.visibleParaInvitados == true ||
+          !existsAfter(/databases/$(database)/documents/public_expedientes/$(expedienteId)));
+      allow delete: if false;
+
+      match /documentos/{documentoId} {
+        allow read, create: if admin();
+        allow update: if admin() &&
+          (request.resource.data.visibleParaInvitados == true ||
+            !existsAfter(/databases/$(database)/documents/public_expedientes/$(expedienteId)/documentos/$(documentoId)));
+        allow delete: if false;
+
+        match /versiones/{versionId} {
+          allow read, create: if admin();
+          allow update, delete: if false;
+        }
+      }
+    }
+
+    match /public_expedientes/{expedienteId} {
+      allow get, list: if request.auth != null;
+      allow create, update: if admin() &&
+        getAfter(/databases/$(database)/documents/expedientes/$(expedienteId))
+          .data.visibleParaInvitados == true;
+      allow delete: if admin();
+
+      match /documentos/{documentoId} {
+        allow get, list: if request.auth != null &&
+          exists(/databases/$(database)/documents/public_expedientes/$(expedienteId));
+        allow create, update: if admin() &&
+          existsAfter(/databases/$(database)/documents/public_expedientes/$(expedienteId)) &&
+          getAfter(/databases/$(database)/documents/expedientes/$(expedienteId)/documentos/$(documentoId))
+            .data.visibleParaInvitados == true;
+        allow delete: if admin();
+      }
+    }
+
+    match /registros_invitados/{guestUid} {
+      allow get: if admin() || (invitado() && request.auth.uid == guestUid);
+      allow list: if admin();
+      allow create: if invitado() && request.auth.uid == guestUid &&
+        request.resource.data.keys().hasOnly([
+          'guestUid', 'installationId', 'plataforma', 'fechaPrimerAcceso',
+          'fechaUltimoAcceso', 'cantidadAccesos', 'tipoAcceso'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'guestUid', 'installationId', 'plataforma', 'fechaPrimerAcceso',
+          'fechaUltimoAcceso', 'cantidadAccesos', 'tipoAcceso'
+        ]) &&
+        request.resource.data.guestUid == guestUid &&
+        request.resource.data.installationId is string &&
+        request.resource.data.installationId.size() == 24 &&
+        request.resource.data.plataforma in ['android', 'web'] &&
+        request.resource.data.fechaPrimerAcceso == request.time &&
+        request.resource.data.fechaUltimoAcceso == request.time &&
+        request.resource.data.cantidadAccesos == 1 &&
+        request.resource.data.tipoAcceso == 'invitado';
+      allow update: if invitado() && request.auth.uid == guestUid &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['fechaUltimoAcceso', 'cantidadAccesos']) &&
+        request.resource.data.fechaUltimoAcceso == request.time &&
+        request.resource.data.cantidadAccesos == resource.data.cantidadAccesos + 1;
+      allow delete: if false;
+    }
+  }
+}

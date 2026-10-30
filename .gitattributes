@@ -1,0 +1,7 @@
+*.dart text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.rules text eol=lf
+*.mjs text eol=lf
+*.bcmap binary
+*.png binary
