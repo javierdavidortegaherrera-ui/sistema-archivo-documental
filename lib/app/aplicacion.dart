@@ -7,6 +7,7 @@ import '../repositories/archivo_repository.dart';
 import '../screens/acceso/pantalla_acceso.dart';
 import '../screens/inicio/pantalla_inicio.dart';
 import '../services/acceso_service.dart';
+import '../widgets/carga_esqueleto.dart';
 
 class Aplicacion extends StatelessWidget {
   const Aplicacion({super.key});
@@ -40,9 +41,7 @@ class Aplicacion extends StatelessWidget {
         builder: (context, estado) {
           if (!estado.hasData &&
               estado.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const AccesoEsqueleto();
           }
           final usuario = estado.data;
           if (usuario == null) return PantallaAcceso(acceso: acceso);
@@ -85,7 +84,7 @@ class _EntradaInvitadoState extends State<_EntradaInvitado> {
     future: registro,
     builder: (context, estado) {
       if (estado.connectionState != ConnectionState.done) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const InicioEsqueleto(invitado: true);
       }
       if (estado.hasError) {
         return Scaffold(
@@ -149,7 +148,7 @@ class _EntradaAdministradorState extends State<_EntradaAdministrador> {
     future: autorizado,
     builder: (context, estado) {
       if (estado.connectionState != ConnectionState.done) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const InicioEsqueleto(invitado: false);
       }
       if (estado.hasError) {
         return Scaffold(

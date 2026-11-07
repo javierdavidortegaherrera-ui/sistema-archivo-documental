@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../models/expediente.dart';
 import '../../repositories/archivo_repository.dart';
 import '../../services/acceso_service.dart';
+import '../../widgets/carga_esqueleto.dart';
 import '../acceso/pantalla_cuentas.dart';
 import '../expedientes/panel_expedientes.dart';
 
@@ -162,7 +163,46 @@ class _Dashboard extends StatelessWidget {
     builder: (context, estado) {
       if (estado.hasError) return _EstadoError(error: estado.error.toString());
       if (!estado.hasData) {
-        return const Center(child: CircularProgressIndicator());
+        return ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Text(
+              'Panel de administrador',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text('Repositorio documental de demostración'),
+            const SizedBox(height: 20),
+            CargaEsqueleto(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: List.generate(
+                  3,
+                  (_) => const Card(
+                    child: SizedBox(
+                      width: 190,
+                      height: 130,
+                      child: Padding(
+                        padding: EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            BloqueEsqueleto(ancho: 24, alto: 24),
+                            SizedBox(height: 12),
+                            BloqueEsqueleto(ancho: 70, alto: 28),
+                            SizedBox(height: 8),
+                            BloqueEsqueleto(ancho: 110, alto: 14),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
       }
       final expedientes = estado.data!;
       return ListView(
@@ -260,7 +300,17 @@ class _Visitas extends StatelessWidget {
     builder: (context, estado) {
       if (estado.hasError) return _EstadoError(error: estado.error.toString());
       if (!estado.hasData) {
-        return const Center(child: CircularProgressIndicator());
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(
+              'Visitas de invitados',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 12),
+            const ListaEsqueleto(),
+          ],
+        );
       }
       final registros = estado.data!.docs;
       return ListView(

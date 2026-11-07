@@ -45,6 +45,7 @@ Organizar expedientes de importación y exportación, guardar PDF e imágenes en
 - La vista PDF web usa PDF.js 4.6.82 incluido localmente en `web/pdfjs` bajo su licencia Apache 2.0; la visualización no carga código desde una CDN.
 - Publicación u ocultación explícita de expedientes y documentos. Ambos son privados por defecto.
 - Búsqueda simple por campos de los registros ya autorizados en la pantalla actual; no es búsqueda de texto completo.
+- Pantallas de carga esqueleto en el acceso, panel, listados, cuentas y vista previa de documentos. La animación respeta la preferencia del sistema para reducir movimiento.
 - Registro técnico de accesos anónimos y panel de las 50 visitas recientes para administradores.
 - Reglas de Firestore y Storage que reservan las escrituras de negocio al administrador inicial con custom claim `admin` y a cuentas registradas en la colección protegida `administradores`. Los invitados solo pueden leer archivos de una versión publicada bajo un expediente publicado.
 

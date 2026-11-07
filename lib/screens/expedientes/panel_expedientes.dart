@@ -8,6 +8,7 @@ import '../../core/archivo_validador.dart';
 import '../../models/documento.dart';
 import '../../models/expediente.dart';
 import '../../repositories/archivo_repository.dart';
+import '../../widgets/carga_esqueleto.dart';
 
 class PanelExpedientes extends StatefulWidget {
   const PanelExpedientes({
@@ -139,7 +140,7 @@ class _PanelExpedientesState extends State<PanelExpedientes> {
             if (estado.hasError)
               _Aviso('No se pudieron cargar los expedientes: ${estado.error}')
             else if (!estado.hasData)
-              const Center(child: CircularProgressIndicator())
+              const ListaEsqueleto()
             else if (visibles.isEmpty)
               _Aviso(
                 busqueda.isEmpty
@@ -304,7 +305,7 @@ class _DetalleExpedienteState extends State<_DetalleExpediente> {
           if (estado.hasError)
             _Aviso('No se pudieron cargar los documentos: ${estado.error}')
           else if (!estado.hasData)
-            const Center(child: CircularProgressIndicator())
+            const ListaEsqueleto(cantidad: 2)
           else if (documentos.isEmpty)
             _Aviso(
               busqueda.isEmpty
@@ -601,7 +602,7 @@ class _VistaDocumento extends StatelessWidget {
             return _Aviso('No se pudo abrir el archivo: ${estado.error}');
           }
           if (!estado.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const DocumentoEsqueleto();
           }
           final bytes = estado.data!;
           return documento.tipoMime == 'application/pdf'

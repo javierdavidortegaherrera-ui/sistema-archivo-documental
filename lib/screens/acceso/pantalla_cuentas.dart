@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/acceso_service.dart';
+import '../../widgets/carga_esqueleto.dart';
 
 class PantallaCuentas extends StatefulWidget {
   const PantallaCuentas({super.key, required this.acceso});
@@ -186,7 +187,7 @@ class _PantallaCuentasState extends State<PantallaCuentas> {
                     return const Text('No se pudo cargar la lista de cuentas.');
                   }
                   if (!estado.hasData) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const ListaEsqueleto(cantidad: 2);
                   }
                   final cuentas = estado.data!.docs;
                   if (cuentas.isEmpty) {
