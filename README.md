@@ -32,14 +32,10 @@ Los PDF de muestra también son ficticios: [factura comercial](output/pdf/factur
 
 ## Diagrama interactivo: cómo funciona
 
-[**Abrir el archivo del visor interactivo**](docs/arquitectura-interactiva.html) para elegir la ruta del invitado, del administrador o de seguridad y pulsar cada módulo para ver su función y sus archivos. En GitHub, usa **Download raw file** para descargar el HTML y ábrelo en tu navegador; GitHub no ejecuta sus controles dentro del README.
+El diagrama aparece aquí mismo. Puedes contraerlo o expandirlo y abrir los recorridos de invitado, administrador y permisos que aparecen debajo.
 
-[**Explorar el diagrama interactivo en línea**](https://htmlpreview.github.io/?https://github.com/javierdavidortegaherrera-ui/sistema-archivo-documental/blob/main/docs/arquitectura-interactiva.html) mediante una vista externa del archivo público. Elige **Vista general**, **Ruta del invitado**, **Ruta del administrador** o **Datos y permisos**, y pulsa un módulo para ver su función y los archivos relacionados.
-
-Noodles se conectó, pero no generó un grafo de este repositorio porque su analizador no admite Dart. Este visor es una alternativa interactiva elaborada a partir del código Flutter y las reglas de Firebase.
-
-<details>
-<summary>Ver también el diagrama Mermaid en el README</summary>
+<details open>
+<summary>Mapa visual del sistema</summary>
 
 El mapa separa la aplicación de los servicios de Firebase.
 
@@ -72,6 +68,12 @@ flowchart LR
 ```
 
 </details>
+
+[**Abrir el archivo del visor interactivo**](docs/arquitectura-interactiva.html) para elegir la ruta del invitado, del administrador o de seguridad y pulsar cada módulo para ver su función y sus archivos. En GitHub, usa **Download raw file** para descargar el HTML y ábrelo en tu navegador; GitHub no ejecuta sus controles dentro del README.
+
+[**Explorar el diagrama interactivo en línea**](https://htmlpreview.github.io/?https://github.com/javierdavidortegaherrera-ui/sistema-archivo-documental/blob/main/docs/arquitectura-interactiva.html) mediante una vista externa del archivo público. Elige **Vista general**, **Ruta del invitado**, **Ruta del administrador** o **Datos y permisos**, y pulsa un módulo para ver su función y los archivos relacionados.
+
+Noodles se conectó, pero no generó un grafo de este repositorio porque su analizador no admite Dart. Este visor es una alternativa interactiva elaborada a partir del código Flutter y las reglas de Firebase.
 
 <details>
 <summary>👤 Ruta del invitado: entrar, buscar y abrir un documento</summary>
