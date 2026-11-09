@@ -32,7 +32,14 @@ Los PDF de muestra también son ficticios: [factura comercial](output/pdf/factur
 
 ## Diagrama interactivo: cómo funciona
 
-El mapa separa la aplicación de los servicios de Firebase. Abre una ruta para seguir sus pasos y ver los archivos que la implementan.
+[**Abrir el archivo del visor interactivo**](docs/arquitectura-interactiva.html) para elegir la ruta del invitado, del administrador o de seguridad y pulsar cada módulo para ver su función y sus archivos. En GitHub, usa **Download raw file** para descargar el HTML y ábrelo en tu navegador; GitHub no ejecuta sus controles dentro del README.
+
+Noodles se conectó, pero no generó un grafo de este repositorio porque su analizador no admite Dart. Este visor es una alternativa interactiva elaborada a partir del código Flutter y las reglas de Firebase.
+
+<details>
+<summary>Ver también el diagrama Mermaid en el README</summary>
+
+El mapa separa la aplicación de los servicios de Firebase.
 
 ```mermaid
 flowchart LR
@@ -61,6 +68,8 @@ flowchart LR
     DEM --> PRE
     STO --> PRE
 ```
+
+</details>
 
 <details>
 <summary>👤 Ruta del invitado: entrar, buscar y abrir un documento</summary>

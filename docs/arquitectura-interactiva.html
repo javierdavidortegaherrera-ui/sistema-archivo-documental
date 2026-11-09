@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Mapa interactivo · Sistema de Archivo Documental</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #17253b; background: #f5f8fc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #125cb4; }
+    button { font: inherit; }
+    .shell { max-width: 1500px; margin: auto; padding: 28px clamp(16px, 3vw, 48px) 48px; }
+    .top { display: flex; align-items: center; gap: 18px; margin-bottom: 36px; }
+    .mark { width: 52px; height: 52px; display: grid; place-items: center; flex: none; background: #163e72; color: #fff; border-radius: 13px; font-size: 17px; font-weight: 800; letter-spacing: .03em; }
+    .top strong { display: block; font-size: 17px; }
+    .top span { color: #5d6b7b; font-size: 14px; }
+    .top a { margin-left: auto; font-size: 14px; text-decoration: none; font-weight: 650; }
+    .eyebrow { color: #2465ad; font-size: 13px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { font-size: clamp(30px, 4vw, 52px); letter-spacing: -.04em; margin: 8px 0 10px; line-height: 1.08; }
+    .intro { max-width: 760px; color: #53657a; font-size: 17px; line-height: 1.55; margin: 0 0 26px; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .route { border: 1px solid #ccd9e9; border-radius: 100px; background: #fff; color: #315272; padding: 10px 17px; cursor: pointer; font-weight: 650; }
+    .route:hover, .route:focus-visible { border-color: #2670bd; outline: none; }
+    .route[aria-pressed="true"] { background: #163e72; color: white; border-color: #163e72; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 330px); gap: 16px; align-items: stretch; }
+    .canvas, .inspector { background: white; border: 1px solid #d9e3ef; box-shadow: 0 8px 28px rgba(24, 53, 91, .06); border-radius: 20px; }
+    .canvas { overflow-x: auto; overflow-y: hidden; }
+    .diagram { width: 100%; min-width: 1000px; display: block; }
+    .lane-label { fill: #63758b; font-size: 16px; font-weight: 750; letter-spacing: .08em; }
+    .lane-band { fill: #f2f7fd; }
+    .lane-band.admin { fill: #f7f9fd; }
+    .edge { fill: none; stroke: #91abc7; stroke-width: 2.5; marker-end: url(#arrow); transition: opacity .2s, stroke .2s; }
+    .edge.published { stroke: #2b7cae; stroke-dasharray: 6 5; }
+    .node { cursor: pointer; transition: opacity .2s; }
+    .node rect { fill: #fff; stroke: #b8cbe0; stroke-width: 2; rx: 14; transition: fill .2s, stroke .2s, stroke-width .2s; }
+    .node text { fill: #1c3657; font-size: 17px; font-weight: 700; pointer-events: none; }
+    .node .small { fill: #667a90; font-size: 12px; font-weight: 600; }
+    .node:hover rect, .node:focus-visible rect { stroke: #2775c0; stroke-width: 3; }
+    .node:focus-visible { outline: none; }
+    .node.selected rect { fill: #e8f3ff; stroke: #1766ae; stroke-width: 3; }
+    .dimmed { opacity: .18; }
+    .inspector { padding: 24px; min-height: 410px; }
+    .inspector .kicker { color: #3670a7; text-transform: uppercase; font-weight: 800; letter-spacing: .11em; font-size: 12px; margin: 0 0 12px; }
+    .inspector h2 { font-size: 27px; line-height: 1.15; margin: 0 0 12px; }
+    .inspector p { color: #53657a; line-height: 1.55; margin: 0 0 19px; }
+    .inspector h3 { margin: 0 0 10px; font-size: 14px; }
+    .inspector ul { margin: 0; padding-left: 19px; line-height: 1.8; }
+    .inspector li { overflow-wrap: anywhere; }
+    .hint { display: flex; gap: 8px; align-items: center; color: #64768a; font-size: 14px; margin: 14px 2px 0; }
+    .note { margin-top: 24px; padding: 15px 18px; border-left: 4px solid #5e93c5; background: #eaf3fc; border-radius: 0 12px 12px 0; color: #3b5874; font-size: 14px; line-height: 1.5; }
+    @media (max-width: 1050px) { .workspace { grid-template-columns: 1fr; } .inspector { min-height: 0; } }
+    @media (max-width: 600px) { .shell { padding-top: 18px; } .top { margin-bottom: 26px; } .top a { max-width: 95px; text-align: right; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="mark" aria-hidden="true">AD</div>
+      <div><strong>Archivo Documental</strong><span>Mapa de funcionamiento</span></div>
+      <a href="https://github.com/javierdavidortegaherrera-ui/sistema-archivo-documental#readme">Volver al README ↗</a>
+    </header>
+
+    <div class="eyebrow">Arquitectura interactiva</div>
+    <h1>Del acceso al documento publicado</h1>
+    <p class="intro">Elige una ruta y pulsa los módulos para ver qué hace cada uno y dónde se implementa. Las flechas punteadas muestran el paso de los datos privados a la vista pública.</p>
+
+    <nav class="toolbar" aria-label="Rutas del sistema">
+      <button class="route" type="button" data-route="all" aria-pressed="true">Vista general</button>
+      <button class="route" type="button" data-route="guest" aria-pressed="false">Ruta del invitado</button>
+      <button class="route" type="button" data-route="admin" aria-pressed="false">Ruta del administrador</button>
+      <button class="route" type="button" data-route="security" aria-pressed="false">Datos y permisos</button>
+    </nav>
+
+    <div class="workspace">
+      <div class="canvas" tabindex="0" aria-label="Diagrama; desliza horizontalmente en pantallas pequeñas">
+        <svg class="diagram" viewBox="0 0 1290 690" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="graph-title graph-desc">
+          <title id="graph-title">Flujo del sistema de archivo documental</title>
+          <desc id="graph-desc">Flutter inicia sesión con Firebase Authentication. El invitado ve expedientes publicados; el administrador crea archivos privados y los publica. Firestore y Cloud Storage sirven la vista previa.</desc>
+          <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1 1 L8 4.5 L1 8" fill="none" stroke="#91abc7" stroke-width="1.5"/></marker></defs>
+          <rect class="lane-band" x="505" y="55" width="750" height="280" rx="18"/>
+          <rect class="lane-band admin" x="505" y="355" width="750" height="295" rx="18"/>
+          <text class="lane-label" x="530" y="83">INVITADO</text>
+          <text class="lane-label" x="530" y="384">ADMINISTRADOR</text>
+
+          <g class="edges">
+            <path class="edge" data-routes="guest admin security" d="M230 333 H270"/>
+            <path class="edge" data-routes="guest security" d="M460 333 H488 V159 H520"/>
+            <path class="edge" data-routes="admin security" d="M460 333 H488 V464 H520"/>
+            <path class="edge" data-routes="guest" d="M710 159 H743 V129 H765"/>
+            <path class="edge" data-routes="guest security" d="M710 159 H743 V234 H765"/>
+            <path class="edge" data-routes="guest" d="M955 234 H1010"/>
+            <path class="edge" data-routes="admin security" d="M710 464 H743 V450 H765"/>
+            <path class="edge" data-routes="admin" d="M710 464 H743 V589 H765"/>
+            <path class="edge" data-routes="admin" d="M955 450 H1010"/>
+            <path class="edge" data-routes="admin security" d="M955 450 H982 V589 H1010"/>
+            <path class="edge published" data-routes="admin security" d="M1010 589 H982 V234 H955"/>
+            <path class="edge" data-routes="guest" d="M1105 410 V274"/>
+          </g>
+
+          <g class="node" data-node="app" data-routes="guest admin security" tabindex="0" role="button" aria-label="Aplicación Flutter" transform="translate(40 293)"><rect width="190" height="80"/><text x="18" y="34">App Flutter</text><text class="small" x="18" y="58">Android y web</text></g>
+          <g class="node" data-node="auth" data-routes="guest admin security" tabindex="0" role="button" aria-label="Firebase Authentication" transform="translate(270 293)"><rect width="190" height="80"/><text x="18" y="34">Authentication</text><text class="small" x="18" y="58">Identidad y sesión</text></g>
+          <g class="node" data-node="guest" data-routes="guest security" tabindex="0" role="button" aria-label="Acceso invitado" transform="translate(520 119)"><rect width="190" height="80"/><text x="18" y="34">Invitado</text><text class="small" x="18" y="58">Sesión anónima</text></g>
+          <g class="node" data-node="visits" data-routes="guest admin" tabindex="0" role="button" aria-label="Registro de visitas" transform="translate(765 89)"><rect width="190" height="80"/><text x="18" y="34">Visitas</text><text class="small" x="18" y="58">registros_invitados</text></g>
+          <g class="node" data-node="public" data-routes="guest admin security" tabindex="0" role="button" aria-label="Expedientes publicados" transform="translate(765 194)"><rect width="190" height="80"/><text x="18" y="34">Publicados</text><text class="small" x="18" y="58">public_expedientes</text></g>
+          <g class="node" data-node="preview" data-routes="guest" tabindex="0" role="button" aria-label="Vista previa del documento" transform="translate(1010 194)"><rect width="190" height="80"/><text x="18" y="34">Vista previa</text><text class="small" x="18" y="58">PDF o imagen</text></g>
+          <g class="node" data-node="admin" data-routes="admin security" tabindex="0" role="button" aria-label="Acceso administrador" transform="translate(520 424)"><rect width="190" height="80"/><text x="18" y="34">Administrador</text><text class="small" x="18" y="58">Correo y contraseña</text></g>
+          <g class="node" data-node="private" data-routes="admin security" tabindex="0" role="button" aria-label="Expedientes privados" transform="translate(765 410)"><rect width="190" height="80"/><text x="18" y="34">Privados</text><text class="small" x="18" y="58">Firestore</text></g>
+          <g class="node" data-node="storage" data-routes="guest admin security" tabindex="0" role="button" aria-label="Archivos en Cloud Storage" transform="translate(1010 410)"><rect width="190" height="80"/><text x="18" y="34">Archivos</text><text class="small" x="18" y="58">Cloud Storage</text></g>
+          <g class="node" data-node="accounts" data-routes="admin security" tabindex="0" role="button" aria-label="Cuentas administrativas" transform="translate(765 549)"><rect width="190" height="80"/><text x="18" y="34">Cuentas</text><text class="small" x="18" y="58">Alta por administrador</text></g>
+          <g class="node" data-node="publish" data-routes="admin security" tabindex="0" role="button" aria-label="Publicación explícita" transform="translate(1010 549)"><rect width="190" height="80"/><text x="18" y="34">Publicar</text><text class="small" x="18" y="58">Expediente y documento</text></g>
+        </svg>
+      </div>
+
+      <aside class="inspector" aria-live="polite">
+        <p class="kicker" id="detail-type">Vista general</p>
+        <h2 id="detail-title">Explora el recorrido</h2>
+        <p id="detail-description">Selecciona una ruta o pulsa un módulo del diagrama. Aquí verás su función y los archivos del proyecto relacionados.</p>
+        <h3>Archivos relacionados</h3>
+        <ul id="detail-files"><li><a href="https://github.com/javierdavidortegaherrera-ui/sistema-archivo-documental/blob/main/README.md">README del proyecto</a></li></ul>
+      </aside>
+    </div>
+
+    <p class="hint">↔ En el teléfono, desliza el diagrama para recorrerlo. También puedes usar Tab y Enter para explorar los módulos.</p>
+    <p class="note">Este mapa se elaboró a partir de los archivos Dart y las reglas de Firebase del proyecto. El contenido representa los flujos de la aplicación y enlaza sus archivos de implementación.</p>
+  </main>
+
+  <script>
+    const base = 'https://github.com/javierdavidortegaherrera-ui/sistema-archivo-documental/blob/main/';
+    const details = {
+      app: { title: 'Aplicación Flutter', category: 'Entrada', description: 'La aplicación inicia Firebase y decide qué pantalla mostrar según la sesión y el permiso del usuario.', files: ['lib/main.dart', 'lib/app/aplicacion.dart'] },
+      auth: { title: 'Firebase Authentication', category: 'Identidad', description: 'Crea la sesión anónima del invitado o valida correo y contraseña del administrador.', files: ['lib/services/acceso_service.dart', 'lib/app/aplicacion.dart'] },
+      guest: { title: 'Ruta del invitado', category: 'Consulta', description: 'El visitante entra sin registrarse y solo navega por expedientes y documentos publicados.', files: ['lib/screens/acceso/pantalla_acceso.dart', 'lib/app/aplicacion.dart'] },
+      visits: { title: 'Registro de visitas', category: 'Firestore', description: 'La aplicación conserva un registro técnico por UID anónimo. El administrador puede consultar esas visitas.', files: ['lib/services/acceso_service.dart', 'lib/screens/inicio/pantalla_inicio.dart', 'firestore.rules'] },
+      public: { title: 'Contenido publicado', category: 'Firestore', description: 'La colección public_expedientes contiene la vista que pueden leer los usuarios autenticados, incluidos los invitados anónimos.', files: ['lib/repositories/archivo_repository.dart', 'firestore.rules'] },
+      preview: { title: 'Vista previa', category: 'Lectura', description: 'El invitado abre un PDF ficticio de muestra desde Firestore o un PDF/imagen publicado desde Cloud Storage.', files: ['lib/screens/expedientes/panel_expedientes.dart', 'lib/repositories/archivo_repository.dart'] },
+      admin: { title: 'Ruta del administrador', category: 'Gestión', description: 'Tras iniciar sesión, la aplicación verifica el permiso administrativo antes de mostrar el panel.', files: ['lib/app/aplicacion.dart', 'lib/screens/inicio/pantalla_inicio.dart', 'firestore.rules'] },
+      private: { title: 'Expedientes privados', category: 'Firestore', description: 'El administrador crea expedientes y documentos en la colección privada expedientes. No aparecen al invitado hasta su publicación.', files: ['lib/repositories/archivo_repository.dart', 'firestore.rules'] },
+      storage: { title: 'Archivos en la nube', category: 'Cloud Storage', description: 'Los PDF e imágenes nuevos se guardan en Cloud Storage. Las reglas conceden lectura al invitado únicamente si el documento está publicado.', files: ['lib/repositories/archivo_repository.dart', 'storage.rules'] },
+      accounts: { title: 'Registro de cuentas', category: 'Administración', description: 'Un administrador autorizado puede crear otra cuenta administrativa desde la aplicación.', files: ['lib/screens/acceso/pantalla_cuentas.dart', 'lib/services/acceso_service.dart', 'firestore.rules'] },
+      publish: { title: 'Publicación explícita', category: 'Permisos', description: 'Primero se publica el expediente y después cada documento. La aplicación crea o retira el reflejo público y las reglas controlan el acceso.', files: ['lib/repositories/archivo_repository.dart', 'firestore.rules', 'storage.rules'] }
+    };
+    const routes = {
+      all: { title: 'Explora el recorrido', category: 'Vista general', description: 'Selecciona una ruta o pulsa un módulo del diagrama. Aquí verás su función y los archivos del proyecto relacionados.', files: ['README.md'] },
+      guest: { title: 'Ruta del invitado', category: 'Consulta pública', description: 'Sesión anónima → registro técnico → expedientes publicados → vista previa del documento.', files: ['lib/screens/acceso/pantalla_acceso.dart', 'lib/screens/expedientes/panel_expedientes.dart'] },
+      admin: { title: 'Ruta del administrador', category: 'Gestión privada', description: 'Inicio de sesión → permiso administrativo → expediente y archivo privados → publicación explícita. También puede revisar visitas y crear cuentas.', files: ['lib/app/aplicacion.dart', 'lib/repositories/archivo_repository.dart', 'lib/screens/acceso/pantalla_cuentas.dart'] },
+      security: { title: 'Datos y permisos', category: 'Seguridad', description: 'Las reglas de Firestore separan las colecciones privadas de public_expedientes; las reglas de Storage comprueban la publicación antes de permitir la lectura de un archivo nuevo.', files: ['firestore.rules', 'storage.rules'] }
+    };
+    const nodes = [...document.querySelectorAll('.node')];
+    const edges = [...document.querySelectorAll('.edge')];
+    const buttons = [...document.querySelectorAll('.route')];
+    const fileList = document.getElementById('detail-files');
+    let activeRoute = 'all';
+
+    function showDetail(item) {
+      document.getElementById('detail-type').textContent = item.category;
+      document.getElementById('detail-title').textContent = item.title;
+      document.getElementById('detail-description').textContent = item.description;
+      fileList.replaceChildren(...item.files.map(path => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = base + path;
+        link.textContent = path;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        li.append(link);
+        return li;
+      }));
+    }
+
+    function selectRoute(route) {
+      activeRoute = route;
+      buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.route === route)));
+      [...nodes, ...edges].forEach(item => item.classList.toggle('dimmed', route !== 'all' && !item.dataset.routes.split(' ').includes(route)));
+      nodes.forEach(node => node.classList.remove('selected'));
+      showDetail(routes[route]);
+    }
+
+    function selectNode(node) {
+      nodes.forEach(item => item.classList.toggle('selected', item === node));
+      node.classList.remove('dimmed');
+      showDetail(details[node.dataset.node]);
+    }
+
+    buttons.forEach(button => button.addEventListener('click', () => selectRoute(button.dataset.route)));
+    nodes.forEach(node => {
+      node.addEventListener('click', () => selectNode(node));
+      node.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectNode(node); }
+      });
+    });
+  </script>
+</body>
+</html>
