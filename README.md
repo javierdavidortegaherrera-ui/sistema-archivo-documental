@@ -30,6 +30,59 @@ Las capturas se generaron con pruebas de widgets Flutter y datos ficticios. Las 
 
 Los PDF de muestra también son ficticios: [factura comercial](output/pdf/factura_comercial_demo_repuestos.pdf) y [certificado de origen](output/pdf/certificado_origen_demo_cafe.pdf). No tienen validez comercial, legal ni aduanera.
 
+## Diagrama interactivo: cómo funciona
+
+Sigue las flechas para ver el recorrido general. Abre cada etapa debajo del diagrama para conocer qué hace la aplicación y consultar el código correspondiente.
+
+```mermaid
+flowchart TD
+    A["App Flutter<br/>Android o web"] --> B{"Tipo de acceso"}
+    B -->|Invitado| C["Firebase Authentication<br/>sesión anónima"]
+    B -->|Administrador| D["Firebase Authentication<br/>correo y contraseña"]
+    C --> E["Registro técnico de visita<br/>en Firestore"]
+    C --> F["Consultar expedientes publicados"]
+    D --> G{"¿Tiene permiso de administrador?"}
+    G -->|No| H["Acceso denegado"]
+    G -->|Sí| I["Panel administrativo"]
+    I --> J["Crear expediente privado"]
+    I --> K["Subir documento privado"]
+    I --> L["Registrar cuentas y ver visitas"]
+    J --> M["Publicar expediente y documento"]
+    K --> M
+    J --> O["Firestore<br/>metadatos"]
+    K --> N["Cloud Storage<br/>archivos nuevos"]
+    K --> O
+    M --> P["Firestore<br/>public_expedientes"]
+    P --> F
+    F --> Q["Elegir documento publicado"]
+    Q --> R{"Origen del archivo"}
+    R -->|PDF ficticio de muestra| S["Contenido de demostración<br/>en Firestore"]
+    R -->|Archivo nuevo| N
+    S --> T["Vista previa PDF o imagen"]
+    N --> T
+```
+
+<details>
+<summary>1. Acceso y permisos</summary>
+
+El invitado entra con una sesión anónima y se registra una visita técnica. El administrador inicia sesión con correo y contraseña; su permiso se comprueba mediante un *custom claim* o un registro protegido en `administradores/{uid}`. [Control de sesión](lib/app/aplicacion.dart) · [Servicio de acceso](lib/services/acceso_service.dart) · [Reglas de Firestore](firestore.rules).
+
+</details>
+
+<details>
+<summary>2. Crear, subir y publicar</summary>
+
+Los expedientes y documentos nuevos son privados. El administrador puede subir PDF, JPG o PNG de hasta 10 MB cuando Cloud Storage está habilitado. El archivo se guarda en Storage y sus datos en Firestore. Al publicar el expediente y después el documento, la app crea las entradas que puede consultar el invitado en `public_expedientes`. [Operaciones del archivo](lib/repositories/archivo_repository.dart) · [Reglas de Storage](storage.rules).
+
+</details>
+
+<details>
+<summary>3. Consultar y abrir documentos</summary>
+
+El invitado solo ve expedientes y documentos publicados. Los dos PDF ficticios de muestra se leen desde Firestore; los archivos nuevos se leen desde Cloud Storage. La app muestra la vista previa del PDF o la imagen autorizada. [Pantalla de expedientes y documentos](lib/screens/expedientes/panel_expedientes.dart) · [Operaciones de lectura](lib/repositories/archivo_repository.dart).
+
+</details>
+
 ## Objetivo
 
 Organizar expedientes de importación y exportación, guardar PDF e imágenes en la nube y permitir que un invitado vea solo lo publicado por un administrador. Resuelve la dispersión de archivos y la falta de una vista clara sobre qué documentos se pueden consultar.
